@@ -3,10 +3,18 @@ import pyautogui
 from PIL import ImageGrab
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
+import os
+from PIL import Image
+
 
 # Pencereyi oluştur
 root = tk.Tk()
 root.title("Fare Tıklama ve Ekran Resmi Alma Uygulaması")
+
+# Klasör adı
+klasor_adi = "ekran_resimleri"
+if not os.path.exists(klasor_adi):
+    os.makedirs(klasor_adi)
 
 # Fare konumu güncelleyen fonksiyon
 def guncelle_fare_konumu():
@@ -21,19 +29,26 @@ def fare_tikla():
     tıklama_sayısı = int(tiklama_sayisi_entry.get())
     bekleme_süresi = int(süre_entry.get())
 
-    # Ekran resmi al ve PDF'ye ekle
+    # Ekran resmi al ve klasöre kaydet
     ekran_resmi_çek(x, y, tıklama_sayısı, bekleme_süresi)
 
-# Ekran resmi çekip PDF'ye ekleyen fonksiyon
+# Ekran resmi çekip klasöre kaydeden fonksiyon
 def ekran_resmi_çek(x, y, tıklama_sayısı, bekleme_süresi):
-    pdf = canvas.Canvas("Ekran_Resimleri.pdf", pagesize=letter)
     for i in range(tıklama_sayısı):
         im = ImageGrab.grab(bbox=(x, y, x + 100, y + 100))  # Belirli bir bölgeden ekran resmi al
-        im.save(f"ekran_resmi_{i}.png")  # Resmi kaydet
-        pdf.drawImage(f"ekran_resmi_{i}.png", 100, 100, width=400, height=400)
+        resim_adı = os.path.join(klasor_adi, f"ekran_resmi_{i}.png")
+        im.save(resim_adı)  # Resmi klasöre kaydet
         if i < tıklama_sayısı - 1:
             pyautogui.click(x=x, y=y)
             root.after(bekleme_süresi, lambda: None)  # Bekleme süresi ekran güncellemesi için
+
+# Klasördeki tüm ekran resimlerini birleştirip PDF yap
+def pdf_yap():
+    pdf = canvas.Canvas("Ekran_Resimleri.pdf", pagesize=letter)
+    for i in range(len(os.listdir(klasor_adi))):
+        resim_adı = os.path.join(klasor_adi, f"ekran_resmi_{i}.png")
+        im = Image.open(resim_adı)
+        pdf.drawInlineImage(im, 100, 100, width=400, height=400)
     pdf.save()
 
 # Etiketler (labels) ve giriş kutuları (entry) oluştur
@@ -62,6 +77,9 @@ süre_entry.pack()
 
 tikla_button = tk.Button(root, text="Tıkla ve Ekran Resmi Al", command=fare_tikla)
 tikla_button.pack()
+
+pdf_yap_button = tk.Button(root, text="Ekran Resimlerini PDF Yap", command=pdf_yap)
+pdf_yap_button.pack()
 
 # Fare konumunu güncellemeyi başlat
 guncelle_fare_konumu()
