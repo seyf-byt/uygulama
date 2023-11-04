@@ -52,3 +52,4 @@ guncelle_fare_konumu()
 
 # Pencereyi göster
 root.mainloop()
+
