@@ -7,7 +7,6 @@ from reportlab.pdfgen import canvas
 import os
 from PIL import Image
 import threading
-import time
 
 # Pencereyi oluştur
 root = tk.Tk()
@@ -18,11 +17,13 @@ klasor_adi = "ekran_resimleri"
 if not os.path.exists(klasor_adi):
     os.makedirs(klasor_adi)
 
+
 # Fare konumu güncelleyen fonksiyon
 def guncelle_fare_konumu():
     fare_konumu = pyautogui.position()
     fare_konumu_label.config(text=f"Farenin Konumu: {fare_konumu}")
     root.after(100, guncelle_fare_konumu)
+
 
 # Ekran resmini al ve klasöre kaydet
 def ekran_resmi_al():
@@ -35,15 +36,22 @@ def ekran_resmi_al():
     resim_adi = os.path.join(klasor_adi, "ekran_resmi.png")
     ekran_resmi.save(resim_adi)
 
+
 # Tıklama işlemini gerçekleştiren fonksiyon
 def fare_tikla():
     x = int(tiklama_x_entry.get())
     y = int(tiklama_y_entry.get())
     tiklama_sayisi = askinteger("Tıklama Sayısı", "Kaç defa tıklamak istersiniz?")
     tiklama_araligi = askinteger("Tıklama Aralığı (ms)", "Tıklamalar arasındaki süre (milisaniye cinsinden) nedir?")
-    for _ in range(tiklama_sayisi):
-        pyautogui.click(x=x, y=y)
-        time.sleep(tiklama_araligi / 1000)
+
+    def tıklamalari_gerceklestir():
+        for _ in range(tiklama_sayisi):
+            ekran_resmi_al()
+            pyautogui.click(x=x, y=y)
+            root.after(tiklama_araligi, lambda: None)
+
+    threading.Thread(target=tıklamalari_gerceklestir).start()
+
 
 # Klasördeki tüm ekran resimlerini tek bir PDF yap
 def klasordaki_resimleri_pdf_yap():
@@ -55,6 +63,7 @@ def klasordaki_resimleri_pdf_yap():
         pdf.drawInlineImage(im, 100, 100, width=400, height=400)
         pdf.showPage()  # Yeni bir sayfa ekle
     pdf.save()
+
 
 # Ekran resmi almadan önce koordinatları soran fonksiyon
 def ekran_resmi_koordinatlari_sor():
@@ -73,6 +82,7 @@ def ekran_resmi_koordinatlari_sor():
     baslangic_y_entry.insert(0, baslangic_y)
     bitis_x_entry.insert(0, bitis_x)
     bitis_y_entry.insert(0, bitis_y)
+
 
 # Etiketler (labels) ve giriş kutuları (entry) oluştur
 fare_konumu_label = tk.Label(root, text="")
