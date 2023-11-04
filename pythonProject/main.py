@@ -1,9 +1,12 @@
 import tkinter as tk
 import pyautogui
+from PIL import ImageGrab
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
 
 # Pencereyi oluştur
 root = tk.Tk()
-root.title("Fare Tıklama Uygulaması")
+root.title("Fare Tıklama ve Ekran Resmi Alma Uygulaması")
 
 # Fare konumu güncelleyen fonksiyon
 def guncelle_fare_konumu():
@@ -18,7 +21,20 @@ def fare_tikla():
     tıklama_sayısı = int(tiklama_sayisi_entry.get())
     bekleme_süresi = int(süre_entry.get())
 
-    pyautogui.click(x=x, y=y, clicks=tıklama_sayısı, interval=bekleme_süresi / 1000)
+    # Ekran resmi al ve PDF'ye ekle
+    ekran_resmi_çek(x, y, tıklama_sayısı, bekleme_süresi)
+
+# Ekran resmi çekip PDF'ye ekleyen fonksiyon
+def ekran_resmi_çek(x, y, tıklama_sayısı, bekleme_süresi):
+    pdf = canvas.Canvas("Ekran_Resimleri.pdf", pagesize=letter)
+    for i in range(tıklama_sayısı):
+        im = ImageGrab.grab(bbox=(x, y, x + 100, y + 100))  # Belirli bir bölgeden ekran resmi al
+        im.save(f"ekran_resmi_{i}.png")  # Resmi kaydet
+        pdf.drawImage(f"ekran_resmi_{i}.png", 100, 100, width=400, height=400)
+        if i < tıklama_sayısı - 1:
+            pyautogui.click(x=x, y=y)
+            root.after(bekleme_süresi, lambda: None)  # Bekleme süresi ekran güncellemesi için
+    pdf.save()
 
 # Etiketler (labels) ve giriş kutuları (entry) oluştur
 fare_konumu_label = tk.Label(root, text="")
@@ -44,7 +60,7 @@ süre_label.pack()
 süre_entry = tk.Entry(root)
 süre_entry.pack()
 
-tikla_button = tk.Button(root, text="Tıkla", command=fare_tikla)
+tikla_button = tk.Button(root, text="Tıkla ve Ekran Resmi Al", command=fare_tikla)
 tikla_button.pack()
 
 # Fare konumunu güncellemeyi başlat
@@ -52,4 +68,3 @@ guncelle_fare_konumu()
 
 # Pencereyi göster
 root.mainloop()
-
