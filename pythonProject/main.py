@@ -6,7 +6,6 @@ from reportlab.pdfgen import canvas
 import os
 from PIL import Image
 
-
 # Pencereyi oluştur
 root = tk.Tk()
 root.title("Fare Tıklama ve Ekran Resmi Alma Uygulaması")
@@ -42,13 +41,15 @@ def ekran_resmi_çek(x, y, tıklama_sayısı, bekleme_süresi):
             pyautogui.click(x=x, y=y)
             root.after(bekleme_süresi, lambda: None)  # Bekleme süresi ekran güncellemesi için
 
-# Klasördeki tüm ekran resimlerini birleştirip PDF yap
-def pdf_yap():
-    pdf = canvas.Canvas("Ekran_Resimleri.pdf", pagesize=letter)
-    for i in range(len(os.listdir(klasor_adi))):
-        resim_adı = os.path.join(klasor_adi, f"ekran_resmi_{i}.png")
-        im = Image.open(resim_adı)
+# Klasördeki tüm ekran resimlerini tek bir PDF yap
+def klasordaki_resimleri_pdf_yap():
+    resimler = [f for f in os.listdir(klasor_adi) if f.endswith(".png")]
+    pdf = canvas.Canvas("Klasor_Ekran_Resimleri.pdf", pagesize=letter)
+    for resim_adı in resimler:
+        resim_yolu = os.path.join(klasor_adi, resim_adı)
+        im = Image.open(resim_yolu)
         pdf.drawInlineImage(im, 100, 100, width=400, height=400)
+        pdf.showPage()  # Yeni bir sayfa ekle
     pdf.save()
 
 # Etiketler (labels) ve giriş kutuları (entry) oluştur
@@ -78,7 +79,7 @@ süre_entry.pack()
 tikla_button = tk.Button(root, text="Tıkla ve Ekran Resmi Al", command=fare_tikla)
 tikla_button.pack()
 
-pdf_yap_button = tk.Button(root, text="Ekran Resimlerini PDF Yap", command=pdf_yap)
+pdf_yap_button = tk.Button(root, text="Klasördeki Tüm Ekran Resimlerini PDF Yap", command=klasordaki_resimleri_pdf_yap)
 pdf_yap_button.pack()
 
 # Fare konumunu güncellemeyi başlat
