@@ -7,6 +7,7 @@ from reportlab.pdfgen import canvas
 import os
 from PIL import Image
 import threading
+import time  # time modülünü import et
 
 # Pencereyi oluştur
 root = tk.Tk()
@@ -17,13 +18,11 @@ klasor_adi = "ekran_resimleri"
 if not os.path.exists(klasor_adi):
     os.makedirs(klasor_adi)
 
-
 # Fare konumu güncelleyen fonksiyon
 def guncelle_fare_konumu():
     fare_konumu = pyautogui.position()
     fare_konumu_label.config(text=f"Farenin Konumu: {fare_konumu}")
     root.after(100, guncelle_fare_konumu)
-
 
 # Ekran resmini al ve klasöre kaydet
 def ekran_resmi_al():
@@ -31,17 +30,18 @@ def ekran_resmi_al():
     baslangic_y = int(baslangic_y_entry.get())
     bitis_x = int(bitis_x_entry.get())
     bitis_y = int(bitis_y_entry.get())
+    tiklama_sayisi = int(tiklama_sayisi_entry.get())
 
-    ekran_resmi = ImageGrab.grab(bbox=(baslangic_x, baslangic_y, bitis_x, bitis_y))
-    resim_adi = os.path.join(klasor_adi, "ekran_resmi.png")
-    ekran_resmi.save(resim_adi)
-
+    for _ in range(tiklama_sayisi):
+        ekran_resmi = ImageGrab.grab(bbox=(baslangic_x, baslangic_y, bitis_x, bitis_y))
+        resim_adi = os.path.join(klasor_adi, f"ekran_resmi_{int(time.time())}.png")
+        ekran_resmi.save(resim_adi)
 
 # Tıklama işlemini gerçekleştiren fonksiyon
 def fare_tikla():
     x = int(tiklama_x_entry.get())
     y = int(tiklama_y_entry.get())
-    tiklama_sayisi = askinteger("Tıklama Sayısı", "Kaç defa tıklamak istersiniz?")
+    tiklama_sayisi = int(tiklama_sayisi_entry.get())  # Eklenen satır
     tiklama_araligi = askinteger("Tıklama Aralığı (ms)", "Tıklamalar arasındaki süre (milisaniye cinsinden) nedir?")
 
     def tıklamalari_gerceklestir():
@@ -51,7 +51,6 @@ def fare_tikla():
             root.after(tiklama_araligi, lambda: None)
 
     threading.Thread(target=tıklamalari_gerceklestir).start()
-
 
 # Klasördeki tüm ekran resimlerini tek bir PDF yap
 def klasordaki_resimleri_pdf_yap():
@@ -63,7 +62,6 @@ def klasordaki_resimleri_pdf_yap():
         pdf.drawInlineImage(im, 100, 100, width=400, height=400)
         pdf.showPage()  # Yeni bir sayfa ekle
     pdf.save()
-
 
 # Ekran resmi almadan önce koordinatları soran fonksiyon
 def ekran_resmi_koordinatlari_sor():
@@ -82,7 +80,6 @@ def ekran_resmi_koordinatlari_sor():
     baslangic_y_entry.insert(0, baslangic_y)
     bitis_x_entry.insert(0, bitis_x)
     bitis_y_entry.insert(0, bitis_y)
-
 
 # Etiketler (labels) ve giriş kutuları (entry) oluştur
 fare_konumu_label = tk.Label(root, text="")
@@ -107,6 +104,11 @@ bitis_y_label = tk.Label(root, text="Bitiş Y Koordinatı:")
 bitis_y_label.pack()
 bitis_y_entry = tk.Entry(root)
 bitis_y_entry.pack()
+
+tiklama_sayisi_label = tk.Label(root, text="Tıklama Sayısı:")  # Eklenen satır
+tiklama_sayisi_label.pack()  # Eklenen satır
+tiklama_sayisi_entry = tk.Entry(root)  # Eklenen satır
+tiklama_sayisi_entry.pack()  # Eklenen satır
 
 ekran_resmi_al_button = tk.Button(root, text="Ekran Resmi Al", command=ekran_resmi_al)
 ekran_resmi_al_button.pack()
